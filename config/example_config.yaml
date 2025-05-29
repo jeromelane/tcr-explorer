@@ -1,0 +1,2 @@
+expression_data_dir: "data/pbmc_10x/"
+tcr_data_file: "data/tcr_annotations.csv"
