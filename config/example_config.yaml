@@ -1,2 +1,20 @@
-expression_data_dir: "data/pbmc_10x/"
-tcr_data_file: "data/tcr_annotations.csv"
+# Path to the expression matrix directory
+expression_data_dir: "data/filtered_feature_bc_matrix/"
+
+
+# Optionally: paths to V(D)J data if you plan to use TCR/BCR integration
+tcr_data:
+  filtered_contig_annotations: "data/vdj_v1_hs_nsclc_multi_5gex_t_b_vdj_t_filtered_contig_annotations.csv"
+  clonotypes: "data/vdj_v1_hs_nsclc_multi_5gex_t_b_vdj_t_clonotypes.csv"
+
+bcr_data:
+  filtered_contig_annotations: "data/vdj_v1_hs_nsclc_multi_5gex_t_b_vdj_b_filtered_contig_annotations.csv"
+  clonotypes: "data/vdj_v1_hs_nsclc_multi_5gex_t_b_vdj_b_clonotypes.csv"
+
+# Optional: species information (if you plan to extend pipeline)
+species: "Homo sapiens"
+
+# Optional downstream parameters (if used in clustering/gsea)
+min_cells: 500
+min_genes: 200
+max_mito_percent: 20

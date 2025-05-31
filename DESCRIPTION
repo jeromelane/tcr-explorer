@@ -8,4 +8,4 @@ Description: A pipeline to analyze single-cell TCR repertoire, run from CLI or R
 License: MIT
 Encoding: UTF-8
 LazyData: true
-Imports: Seurat, scRepertoire, yaml, optparse, ggplot2
+Imports: Seurat, yaml, optparse, ggplot2, clusterProfiler, org.Hs.eg.db
