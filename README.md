@@ -59,7 +59,7 @@
 
 ### 7️⃣ Functional Enrichment (Pathway Analysis)
 
-- Select top marker genes from Cluster 0.
+- Select top marker genes for all clusters.
 - Perform Gene Ontology (GO) enrichment using `clusterProfiler`.
 - Export pathway enrichment results to `enrichment_results` folder.
 
