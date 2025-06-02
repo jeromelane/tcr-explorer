@@ -35,8 +35,35 @@ seurat_obj <- ScaleData(seurat_obj)
 
 # PCA and clustering
 seurat_obj <- RunPCA(seurat_obj)
+
+# Calculate variance explained
+pca_stdev <- seurat_obj@reductions$pca@stdev
+pca_var <- pca_stdev^2
+pca_var_explained <- pca_var / sum(pca_var) * 100
+
+# Convert to data frame for easy plotting
+pca_df <- data.frame(
+  PC = 1:length(pca_var_explained),
+  VarianceExplained = pca_var_explained
+)
+
+# Plot elbow (variance explained)
+library(ggplot2)
+
+p <- ggplot(pca_df[1:20,], aes(x = PC, y = VarianceExplained)) +
+  geom_point(size = 2, color = "steelblue") +
+  geom_line(color = "steelblue") +
+  geom_hline(yintercept = 2, linetype = "dashed", color = "red") +
+  labs(title = "PCA Variance Explained",
+       x = "Principal Component",
+       y = "Percent Variance Explained") +
+  theme_minimal()
+
+# Save plot
+ggsave("pca_variance_explained.png", p, width = 7, height = 5)
+
 seurat_obj <- FindNeighbors(seurat_obj, dims = 1:10)
-seurat_obj <- FindClusters(seurat_obj, resolution = 0.5)
+seurat_obj <- FindClusters(seurat_obj, resolution = 0.5) # Louvain clustering algorithm
 seurat_obj <- RunUMAP(seurat_obj, dims = 1:10)
 
 # Plot UMAP
@@ -47,17 +74,32 @@ ggsave("umap_clusters.png", p)
 markers <- FindAllMarkers(seurat_obj, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
 fwrite(markers, file = "cluster_markers.csv")
 
-# Select top genes for enrichment (e.g. cluster 0)
-top_genes <- markers %>% filter(cluster == 0) %>% pull(gene)
+# Get all cluster IDs
+clusters <- unique(markers$cluster)
 
-# Run enrichment analysis using clusterProfiler (KEGG or GO example)
-message("Running pathway enrichment...")
-enrich_result <- enrichGO(gene = top_genes,
-                          OrgDb = "org.Hs.eg.db",
-                          keyType = "SYMBOL",
-                          ont = "BP", pAdjustMethod = "BH")
+# Create folder for enrichment results
+dir.create("enrichment_results", showWarnings = FALSE)
 
-# Save enrichment results
-write.csv(as.data.frame(enrich_result), file = "go_enrichment.csv")
+# Loop over clusters
+for (clust in clusters) {
+  message(glue::glue("Running enrichment for cluster {clust}"))
 
+  top_genes <- markers %>% filter(cluster == clust) %>% arrange(desc(avg_log2FC)) %>% slice_head(n = 100) %>% pull(gene)
+
+
+  # Only proceed if there are enough genes
+  if (length(top_genes) > 10) {
+    enrich_result <- enrichGO(
+      gene = top_genes,
+      OrgDb = "org.Hs.eg.db",
+      keyType = "SYMBOL",
+      ont = "BP",
+      pAdjustMethod = "BH"
+    )
+
+    # Save enrichment result
+    write.csv(as.data.frame(enrich_result),
+              file = sprintf("enrichment_results/cluster_%s_go_enrichment.csv", clust))
+  }
+}
 message("Pipeline completed successfully.")
